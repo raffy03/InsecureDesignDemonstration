@@ -1,5 +1,6 @@
-using Microsoft.AspNetCore.Mvc;
 using InsecureDesignDemo.Models;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using System.Linq;
 
 namespace InsecureDesignDemo.Controllers
@@ -14,10 +15,10 @@ namespace InsecureDesignDemo.Controllers
             _context = context;
         }
 
+        [Authorize(Roles = "Admin")]
         [HttpPost("promote-user/{id}")]
         public IActionResult PromoteUser(int id)
         {
-            // no check if user is admin 
             var user = _context.Users.Find(id);
             if (user != null)
             {

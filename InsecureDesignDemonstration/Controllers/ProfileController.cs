@@ -1,6 +1,7 @@
-using Microsoft.AspNetCore.Mvc;
 using InsecureDesignDemo.Models;
+using Microsoft.AspNetCore.Mvc;
 using System.Linq;
+using System.Security.Claims;
 
 namespace InsecureDesignDemo.Controllers
 {
@@ -17,7 +18,12 @@ namespace InsecureDesignDemo.Controllers
         [HttpGet("{id}")]
         public IActionResult ViewProfile(int id)
         {
-            // no check if user is only viewing his own profile
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (userId == null || userId != id.ToString())
+            {
+                return Forbid(); // access denied if user tries to view another user's profile
+            }
+
             var user = _context.Users.Find(id);
             if (user == null)
             {
