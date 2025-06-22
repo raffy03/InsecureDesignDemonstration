@@ -1,5 +1,9 @@
 @model InsecureDesignDemo.Models.User
 
+@{
+    ViewData["Title"] = $"Profil – Benutzer {Model.Id}";
+}
+
 <h2>Benutzerprofil</h2>
 <p>ID: @Model.Id</p>
 <p>Username: @Model.Username</p>
