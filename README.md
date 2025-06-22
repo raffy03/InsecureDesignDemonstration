@@ -1,36 +1,45 @@
 # 🛡️ Insecure Design – Awareness Demo (OWASP Top 10)
 
-Dies ist eine einfache ASP.NET Core MVC-Anwendung zur Demonstration der Schwachstelle **„Insecure Design“**, basierend auf den OWASP Top 10.
+Dies ist eine einfache ASP.NET Core MVC-Anwendung zur Demonstration und Behebung der Schwachstelle **„Insecure Design“**, wie sie in den [OWASP Top 10](https://owasp.org/Top10/) gelistet ist.
+
+---
 
 ## 🔍 Schwachstelle: Insecure Design
 
-**Insecure Design** bezeichnet ein fehlerhaftes Systemdesign, das grundlegende Sicherheitsmechanismen ignoriert oder gar nicht vorsieht. Dadurch entstehen Schwachstellen, die sich **nicht durch einfache Input-Validierung oder Patches beheben lassen**, sondern ein **Neudenken der Architektur** erfordern.
+**Insecure Design** beschreibt Architekturfehler, bei denen grundlegende Sicherheitskonzepte wie Autorisierung, Rollenprüfung oder Zugriffsbeschränkungen fehlen – oft weil sie **nicht ins Design eingeplant** wurden.
 
-> 👉 Sicherheitsprobleme durch Designfehler sind oft schwer zu erkennen – aber gefährlich in der Praxis.
+> Diese Art von Schwachstelle entsteht **nicht durch technische Bugs**, sondern durch fehlende Sicherheitsüberlegungen bei der Planung.
 
 ---
 
-## 🧪 Demo-Inhalte
-
-Die Applikation demonstriert **zwei klassische Designfehler**:
+## 🧪 Demo-Inhalte – UNSICHERE Version (`PROBLEM`)
 
 ### 1. 🔓 Profileinsicht ohne Zugriffskontrolle
-- Jeder Benutzer kann auf beliebige Profile zugreifen (`/profile/1`, `/profile/2`)
-- Es wird **nicht geprüft**, ob das aufgerufene Profil zum eingeloggten Benutzer gehört
+- Jeder Benutzer kann `/profile/{id}` aufrufen (z. B. `/profile/2`)
+- Es wird **nicht geprüft**, ob der Benutzer sein eigenes Profil sieht
 
 ### 2. 🚨 Rollenänderung ohne Berechtigung
-- Jeder kann via `POST /admin/promote-user/{id}` Benutzer zu Admins befördern
-- Kein Check auf Benutzerrolle oder Berechtigung → Missbrauchsgefahr
+- Jeder kann über `POST /admin/promote-user/{id}` Benutzer zu Admins machen
+- Es gibt **keine Rollen- oder Authentifizierungsprüfung**
 
 ---
 
-## 🚀 Projekt starten
+## ✅ FIXED – Sichere Variante (`FIXED`)
 
-### Voraussetzungen
-- [.NET 7 SDK](https://dotnet.microsoft.com/download)
-- Visual Studio oder Visual Studio Code
+### 🔐 Lösung 1: Zugriffskontrolle für Profile
+```csharp
+var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+var profile = _context.Users.FirstOrDefault(u => u.Id == id && u.Id.ToString() == userId);
+if (profile == null)
+{
+    return Forbid();
+}
+```
 
-### Ausführen
-```bash
-dotnet restore
-dotnet run
+### 🔐 Lösung 2: Rollenprüfung bei Admin-Methoden
+```csharp
+if (!User.IsInRole("Admin"))
+{
+    return Forbid();
+}
+```
